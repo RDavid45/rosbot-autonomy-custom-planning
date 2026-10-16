@@ -130,3 +130,9 @@ sync hostname="${ROBOT_NAMESPACE}" password="husarion": _install-rsync
     while inotifywait -r -e modify,create,delete,move ./ --exclude='.git/' --exclude='maps/' --exclude='.docs' ; do
         sshpass -p "{{password}}" rsync -vRr --exclude='.git/' --exclude='maps/' --exclude='.docs' --delete ./ husarion@{{hostname}}:/home/husarion/${PWD##*/}
     done
+
+# run teleop_twist_keyboard (inside the rosbot container)
+teleop:
+    docker compose exec -it rosbot bash -c "\
+        source /opt/ros/humble/setup.bash; \
+        ros2 run teleop_twist_keyboard teleop_twist_keyboard"

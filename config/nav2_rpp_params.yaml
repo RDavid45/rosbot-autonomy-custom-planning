@@ -312,8 +312,33 @@ planner_server:
     use_sim_time: false
     expected_planner_frequency: 1.0
 
+    # Each entry is one planner under test; all go through planner_adapter's shared pipeline.
+    # The default behavior tree uses "GridBased". To compare, set GridBased.planner to a different
+    # registered name, or add more entries (e.g. Dijkstra, Rulebook) and pick one by planner_id.
     planner_plugins: [GridBased]
     GridBased:
+      plugin: planner_adapter/GraphPlannerAdapter
+      planner: rulebook               # any name registered in planner_registry.cpp (rulebook, dijkstra)
+      label: ""                       # free text copied into every CSV row (map / scenario name)
+      results_csv: /results/plans.csv # "" to disable; /results is mounted by compose.adapter.yaml
+      # Rules, their metrics and priorities; config/rulebooks is mounted at /rulebooks by
+      # compose.adapter.yaml. "" for no rulebook (then num_costs below applies).
+      rulebook_file: /rulebooks/example.yaml
+      grid_spacing: 0.25
+      robot_radius: 0.16
+      safety_margin: 0.05
+      occupied_threshold: 50
+      unknown_is_blocked: true
+      eight_connected: true
+      keep_largest_component: true
+      num_costs: 0
+      max_snap_distance: 0.25
+      # Planner-specific parameters go under the planner's name:
+      # rulebook:
+      #   some_param: 1.0
+
+    # Original planner, kept for switching back:
+    SmacGridBased:
       plugin: nav2_smac_planner/SmacPlanner2D
       tolerance: 0.125 # tolerance for planning if unable to reach exact pose, in meters
       downsample_costmap: false # whether or not to downsample the map

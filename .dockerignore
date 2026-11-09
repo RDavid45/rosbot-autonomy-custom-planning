@@ -1,0 +1,9 @@
+**/cmake-build-*
+**/build
+**/.idea
+.git
+maps
+results
+planning/results
+planning/build
+planning/.git

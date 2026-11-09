@@ -1,0 +1,24 @@
+# Example rulebook for planner_adapter.
+#
+# rules: rule id = position in this list.
+#   aggregate: how a rule's edge values combine along a path. sum = total (e.g. metres spent too
+#              close to walls), max = worst single edge (e.g. deepest intrusion into the margin).
+#   metric:    the C++ function that scores one edge (src/rule_metrics.cpp):
+#                length                          edge length (m)
+#                clearance_violation {clearance} metres of edge closer than `clearance` to an obstacle
+#                clearance_deficit   {clearance} how far the closest approach falls short of `clearance`
+#                unknown_overlap                 metres through unknown space (needs unknown_is_blocked: false)
+# equivalent:  optional groups of equally ranked rules (the "rulebook" planner needs none).
+# priority:    [higher, lower] pairs. The "rulebook" planner needs these to chain every rule.
+rules:
+  - name: keep_clearance
+    aggregate: sum
+    metric: clearance_violation
+    params:
+      clearance: 0.4
+  - name: min_length
+    aggregate: sum
+    metric: length
+
+priority:
+  - [keep_clearance, min_length]

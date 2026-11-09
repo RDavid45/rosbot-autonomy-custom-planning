@@ -1,0 +1,26 @@
+# Stock Husarion Nav2 image plus the planner_adapter plugin.
+FROM husarion/navigation2:humble-1.1.12-20240123
+
+# The ROS apt key baked into this image expired in 2025; swap in the current one so apt works
+# without disabling signature checks.
+ADD https://raw.githubusercontent.com/ros/rosdistro/master/ros.key /usr/share/keyrings/ros-archive-keyring.gpg
+RUN chmod 644 /usr/share/keyrings/ros-archive-keyring.gpg && \
+    sed -i 's|signed-by=[^ ]*|signed-by=/usr/share/keyrings/ros-archive-keyring.gpg|' /etc/apt/sources.list.d/*.list && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends build-essential python3-colcon-common-extensions && \
+    rm -rf /var/lib/apt/lists/*
+
+# grid_graph and planning (git submodule; run `git submodule update --init` first) sit outside
+# src/ so colcon doesn't try to build them as their own packages; planner_adapter pulls them in
+# with add_subdirectory.
+COPY grid_graph /ros2_ws/grid_graph
+COPY planning /ros2_ws/planning
+COPY planner_adapter /ros2_ws/src/planner_adapter
+
+# The base entrypoint already sources /ros2_ws/install/setup.bash.
+WORKDIR /ros2_ws
+RUN . /opt/ros/humble/setup.sh && \
+    colcon build --packages-select planner_adapter \
+      --cmake-args -DCMAKE_BUILD_TYPE=Release \
+        -DGRID_GRAPH_DIR=/ros2_ws/grid_graph -DPLANNING_DIR=/ros2_ws/planning && \
+    rm -rf build log

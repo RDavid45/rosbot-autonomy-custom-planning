@@ -1,0 +1,13 @@
+# Overlay that swaps the stock navigation image for one with planner_adapter built in.
+# Use it on top of any of the main compose files, e.g.
+#   docker compose -f compose.sim.gazebo.yaml -f compose.adapter.yaml up
+#   docker compose -f compose.yaml -f compose.adapter.yaml up
+services:
+  navigation:
+    image: planner-adapter-navigation:dev
+    build:
+      context: .
+      dockerfile: Dockerfile.navigation
+    volumes:
+      - ./results:/results
+      - ./config/rulebooks:/rulebooks

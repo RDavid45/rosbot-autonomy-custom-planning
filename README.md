@@ -36,7 +36,7 @@ Available recipes:
     sync hostname password="husarion" # Copy repo content to remote host with 'rsync' and watch for changes
 ```
 
-### 🌎 Step 1: Connecting ROSbot and Laptop over VPN
+### Step 1: Connecting ROSbot and Laptop over VPN
 
 Ensure that both ROSbot 2R (or ROSbot 2 PRO) and your laptop are linked to the same Husarnet VPN network. If they are not follow these steps:
 
@@ -58,7 +58,7 @@ Ensure that both ROSbot 2R (or ROSbot 2 PRO) and your laptop are linked to the s
 
    > note that `rosbot2r` is a default ROSbot hostname used in this project
 
-### 📡 Step 2: Sync
+### Step 2: Sync
 
 This repository contains the Docker Compose setup for ROSbot 2R and 2 PRO. You can clone it to both PC and ROSbot, or use the `just sync` script to clone it to your PC and keep it synchronized with the robot
 
@@ -79,7 +79,7 @@ To ensure proper user configuration, review the content of the `.env` file and s
 - **`SAVE_MAP_PERIOD`** - period of time for autosave map (set `0` to disable),
 - **`CONTROLLER`** - choose the navigation controller type,
 
-### 🤖 Step 4: Running Navigation & Mapping
+### Step 4: Running Navigation & Mapping
 
 1. Connect to the ROSbot.
 
@@ -105,7 +105,7 @@ To ensure proper user configuration, review the content of the `.env` file and s
    just start-rosbot
    ```
 
-### 🚗 Step 5: Control the ROSbot from a Web Browser
+### Step 5: Control the ROSbot from a Web Browser
 
 Open the **Google Chrome** browser on your laptop and navigate to:
 

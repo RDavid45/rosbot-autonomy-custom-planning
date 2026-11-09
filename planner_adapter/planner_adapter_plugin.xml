@@ -1,0 +1,8 @@
+<library path="planner_adapter_plugin">
+  <class name="planner_adapter/GraphPlannerAdapter" type="planner_adapter::GraphPlannerAdapter" base_class_type="nav2_core::GlobalPlanner">
+    <description>
+      Runs any registered graph planner on a grid_graph built from the global costmap, through one
+      shared pipeline so planners can be compared consistently.
+    </description>
+  </class>
+</library>

@@ -51,6 +51,7 @@ endif()
 
 # ---- Core: no ROS. Planner interface, registry, shared pipeline, rulebooks, planners. ----
 add_library(planner_adapter_core STATIC
+  src/path_smoothing.cpp
   src/pipeline.cpp
   src/planner_registry.cpp
   src/rule_metrics.cpp

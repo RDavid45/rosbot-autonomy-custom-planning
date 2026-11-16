@@ -8,6 +8,8 @@
 #include <iomanip>
 #include <sstream>
 
+#include "planner_adapter/path_smoothing.hpp"
+
 namespace planner_adapter {
 
 namespace {
@@ -15,8 +17,11 @@ namespace {
 constexpr unsigned char kLethal = 254;
 constexpr unsigned char kNoInformation = 255;
 
-double millisecondsSince(std::chrono::steady_clock::time_point start) {
-  return std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
+double elapsedMs(
+    std::chrono::steady_clock::time_point start,
+    std::chrono::steady_clock::time_point end
+  ) {
+  return std::chrono::duration<double, std::milli>(end - start).count();
 }
 
 // Snaps a world position to the nearest node, or returns -1 if none is within max_distance.
@@ -124,6 +129,7 @@ PipelineParams readPipelineParams(ParameterSource& p) {
   g.keep_largest_component = p.getBool("keep_largest_component", g.keep_largest_component);
   g.num_costs = p.getInt("num_costs", g.num_costs);
   out.max_snap_distance = p.getDouble("max_snap_distance", g.grid_spacing);
+  out.smooth_path = p.getBool("smooth_path", out.smooth_path);
   const std::string rulebook_file = p.getString("rulebook_file", "");
   if (!rulebook_file.empty()) {
     out.rulebook = loadRulebook(rulebook_file);
@@ -159,14 +165,14 @@ PlanOutcome runPlanner(
     rec.message = std::string("graph build failed: ") + e.what();
     return outcome;
   }
-  rec.build_ms = millisecondsSince(build_start);
+  rec.build_ms = elapsedMs(build_start, std::chrono::steady_clock::now());
   rec.graph_nodes = graph.nodes.size();
   rec.graph_edges = graph.edgeCount();
 
   if (params.rulebook) {
     const auto cost_start = std::chrono::steady_clock::now();
     fillRuleCosts(graph, map, params.graph, *params.rulebook);
-    rec.cost_ms = millisecondsSince(cost_start);
+    rec.cost_ms = elapsedMs(cost_start, std::chrono::steady_clock::now());
   }
 
   const int start = snap(graph, start_x, start_y, params.max_snap_distance);
@@ -191,7 +197,7 @@ PlanOutcome runPlanner(
       result = {};
       result.message = std::string("planner threw: ") + e.what();
     }
-    rec.plan_ms = millisecondsSince(plan_start);
+    rec.plan_ms = elapsedMs(plan_start, std::chrono::steady_clock::now());
   }
   rec.stats = result.stats;
   rec.message = result.message;
@@ -218,6 +224,18 @@ PlanOutcome runPlanner(
       const auto& prev = graph.nodes[result.nodes[k - 1]];
       rec.path_length_m += std::hypot(node.x - prev.x, node.y - prev.y);
     }
+  }
+  if (params.smooth_path && outcome.waypoints.size() > 2) {
+    const double required = params.graph.robot_radius + params.graph.safety_margin;
+    const SmoothedPath smoothed = smoothPath(map, grid_graph::clearanceMap(map, params.graph), required,
+                                             outcome.waypoints, map.resolution);
+    if (smoothed.straight_segments > 0) {
+      rec.message += std::string(rec.message.empty() ? "" : "; ") + "smoothing kept " +
+                     std::to_string(smoothed.straight_segments) + " of " +
+                     std::to_string(outcome.waypoints.size() - 1) +
+                     " segments straight: curve left clearance";
+    }
+    outcome.waypoints = smoothed.waypoints;
   }
   if (params.rulebook) {
     const auto& rules = params.rulebook->spec.rules;

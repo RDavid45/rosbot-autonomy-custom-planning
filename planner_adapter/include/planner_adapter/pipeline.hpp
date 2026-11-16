@@ -30,6 +30,9 @@ struct PipelineParams {
   grid_graph::GraphParams graph;
   // Start/goal farther than this (m) from every node fail instead of snapping.
   double max_snap_distance = 0.25;
+  // Replace the node path with a Bezier spline through its nodes. Each segment of the spline that
+  // comes within robot_radius + safety_margin of an obstacle is replaced by its straight graph edge.
+  bool smooth_path = false;
   // Loaded from rulebook_file; null if none. When set, graph.num_costs is its rule count and the
   // pipeline fills Edge::costs before any planner runs.
   std::shared_ptr<const LoadedRulebook> rulebook;
@@ -80,11 +83,13 @@ struct PlanRecord {
 
 struct PlanOutcome {
   PlanRecord record;
-  std::vector<std::pair<double, double>> waypoints;  // world (x, y) of each path node
+  // World (x, y) of each path node, or points along the smoothed path when smooth_path is set.
+  std::vector<std::pair<double, double>> waypoints;
 };
 
 // The one code path every planner goes through: build the graph, fill rule costs, snap start and
 // goal to nodes, run the planner, check that its path only uses real edges, and measure it.
+// Path length and rule costs are those of the node path, even when the waypoints are smoothed.
 PlanOutcome runPlanner(
     GraphPlanner& planner,
     const std::string& planner_name,

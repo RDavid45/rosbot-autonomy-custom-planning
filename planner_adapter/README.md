@@ -90,5 +90,11 @@ with `-DCMAKE_EXE_LINKER_FLAGS=-static` to avoid loading the wrong `libstdc++-6.
   `planner_plugins` entries are fine as long as they share one `rulebook_file`.
 - Clearance metrics compute the clearance map a second time (`buildGraph` keeps its copy
   internal); that time shows up in `cost_ms`.
+- `smooth_path: true` replaces the node path with a Bezier spline through its nodes, sampled
+  about every map cell. Each segment between two nodes is checked on its own: one that comes
+  within `robot_radius + safety_margin` of an obstacle is replaced by its straight graph edge, and
+  the CSV `message` says how many segments were kept straight.
+  `path_length_m` and `rule_costs` always describe the node path, so planners compare the same
+  way with smoothing on or off. The check computes the clearance map once more (untimed).
 - The planning library's partial-order search (`getOptimalPaths`) keeps every tied path, which
   explodes on grids, so the `rulebook` planner uses the total-order method only.

@@ -333,6 +333,7 @@ planner_server:
       keep_largest_component: true
       num_costs: 0
       max_snap_distance: 0.25
+      smooth_path: false   #set true to turn on spline interpolation
       # Planner-specific parameters go under the planner's name:
       # rulebook:
       #   some_param: 1.0
